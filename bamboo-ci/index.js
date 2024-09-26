@@ -37,6 +37,8 @@ async function fetchSurveyData(url = 'https://api.cultureindex.com/Surveys?api-v
             
             // Store the relevant data in the survey map
             surveyMap[email].surveys.push({
+                firstName: survey.firstName,
+                lastName: survey.lastName,
                 traitPattern: survey.traitPattern,
                 surveyReportLink: survey.surveyReportLink,
                 surveyDate: survey.surveyDate
@@ -165,14 +167,11 @@ async function uploadNewSurveys(employeeDirectory, surveyData) {
 
         const existingFiles = await fetchEmployeeFiles(employee.id);
 
-        // Extract file names from the existing files
-        const existingFileNames = existingFiles.map(file => file.fileName);
-
         for (const survey of surveys) {
-            const newFileName = `Culture_index_${survey.surveyDate}.pdf`;
+            const newFileName = `Culture_index_${survey.firstName}_${survey.lastName}_${survey.surveyDate}.pdf`;
 
             // Upload the survey report only if the file does not already exist
-            if (!existingFileNames.includes(newFileName)) {
+            if (!existingFiles.includes(newFileName)) {
                 await uploadSurveyReport(employee.id, survey);
             } else {
                 console.log(`File ${newFileName} already exists for employee ${employee.id}, skipping upload.`);
@@ -186,32 +185,8 @@ app.get('/test', async (req, res) => {
     try {
         const surveyData = await fetchSurveyData();
         const employeeDirectory = await fetchEmployeeDirectory();
-        const limitedEmployees = employeeDirectory.slice(7, 11);
-
-        for (const employee of limitedEmployees) {
-            const email = employee.workEmail.toLowerCase();
-            const surveys = surveyData[email] ? surveyData[email].surveys : [];
     
-            if (surveys.length === 0) continue; // Skip if no surveys for this employee
-    
-            const existingFiles = await fetchEmployeeFiles(employee.id);
-    
-            const existingFileNames = existingFiles.map(file => file.fileName);
-
-            for (const survey of surveys) {
-                const newFileName = `Culture_index_${survey.surveyDate}.pdf`;
-    
-                // Upload the survey report only if the file does not already exist
-                if (!existingFileNames.includes(newFileName)) {
-                    console.log(survey.surveyReportLink)
-                } else {
-                    console.log(`File ${newFileName} already exists for employee ${employee.id}, skipping upload.`);
-                }
-            }
-        }
-    
-        
-        // await uploadNewSurveys(employeeDirectory, surveyData);
+        await uploadNewSurveys(employeeDirectory, surveyData);
 
         res.status(200).json({
             message: 'Data fetched and processed successfully',
