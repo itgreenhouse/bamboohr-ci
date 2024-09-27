@@ -127,12 +127,12 @@ async function uploadSurveyReport(employeeId, survey) {
         // Initialize FormData
         const form = new FormData();
         form.append('category', '308');
-        form.append('fileName', `Culture_index_${survey.surveyDate}.pdf`);
+        form.append('fileName', `Culture_index_${survey.firstName}_${survey.lastName}_${survey.surveyDate}.pdf`);
         form.append('share', 'yes');
 
         // Add the file data
         form.append('file', pdfBuffer, {
-            filename: `Culture_index_${survey.surveyDate}.pdf`,
+            filename: `Culture_index_${survey.firstName}_${survey.lastName}_${survey.surveyDate}.pdf`,
             contentType: 'application/pdf' // Content-Type for a PDF file
         });
 
@@ -157,7 +157,7 @@ async function uploadSurveyReport(employeeId, survey) {
 
 async function uploadNewSurveys(employeeDirectory, surveyData) {
     // Limit to the first 7 employees for testing
-    const limitedEmployees = employeeDirectory.slice(7, 11);
+    const limitedEmployees = employeeDirectory.slice(7, 11); // for testing
 
     for (const employee of limitedEmployees) {
         const email = employee.workEmail.toLowerCase();
