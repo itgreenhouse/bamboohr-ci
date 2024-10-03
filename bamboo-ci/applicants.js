@@ -96,8 +96,34 @@ async function fetchStatuses() {
     }
 }
 
+async function addApplicationComment(applicationId, commentText) {
+    try {
+        const url = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/${applicationId}/comments`;
+
+        const options = {
+            method: 'POST',
+            url: url,
+            headers: {
+                'content-type': 'application/json',
+                'authorization': `Basic ${Buffer.from(`${process.env.BAMBOOHR_API_KEY}:x`).toString('base64')}`
+            },
+            data: {
+                type: 'comment',
+                comment: commentText
+            }
+        };
+
+        const response = await axios.request(options);
+        console.log('Comment added successfully:', response.data);
+    } catch (error) {
+        console.error('Error adding comment:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+}
+
 module.exports = {
     fetchApplications,
     fetchApplicationDetail,
-    fetchStatuses
+    fetchStatuses,
+    addApplicationComment
 };
