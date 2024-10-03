@@ -2,7 +2,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 require('dotenv').config();
 
-// Function to get the employee directory from BambooHR
+
 async function fetchEmployeeDirectory() {
     try {
         const options = {
@@ -89,14 +89,21 @@ async function uploadSurveyReport(employeeId, survey) {
     }
 }
 
-// Function to upload new surveys for employees
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function uploadNewSurveys(employeeDirectory, surveyData) {
-    const limitedEmployees = employeeDirectory.slice(7, 11);
+    
+    for (const employee of employeeDirectory) {
+        const email = employee.workEmail ? employee.workEmail.toLowerCase() : null;
 
-    for (const employee of limitedEmployees) {
-        const email = employee.workEmail.toLowerCase();
+        if (!email) {
+            console.log(`Skipping employee ${employee.id} due to null email.`);
+            continue;
+        }
+
         const surveys = surveyData[email] ? surveyData[email].surveys : [];
-
         if (surveys.length === 0) continue;
 
         const existingFiles = await fetchEmployeeFiles(employee.id);
@@ -105,7 +112,11 @@ async function uploadNewSurveys(employeeDirectory, surveyData) {
             const newFileName = `CI_${survey.firstName}_${survey.lastName}_${survey.surveyDate}.pdf`;
 
             if (!existingFiles.includes(newFileName)) {
-                await uploadSurveyReport(employee.id, survey);
+                try {
+                    await uploadSurveyReport(employee.id, survey);
+                } catch (error) {
+                    console.error(`Error uploading survey for employee ${employee.id}:`, error);
+                }
             } else {
                 console.log(`File ${newFileName} already exists for employee ${employee.id}, skipping upload.`);
             }
@@ -113,9 +124,11 @@ async function uploadNewSurveys(employeeDirectory, surveyData) {
     }
 }
 
+
+
 module.exports = {
     fetchEmployeeDirectory,
     fetchEmployeeFiles,
     uploadSurveyReport,
-    uploadNewSurveys
+    uploadNewSurveys,
 };
