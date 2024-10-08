@@ -89,10 +89,6 @@ async function uploadSurveyReport(employeeId, survey) {
     }
 }
 
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function uploadNewSurveys(employeeDirectory, surveyData) {
     
     for (const employee of employeeDirectory) {
@@ -123,7 +119,6 @@ async function uploadNewSurveys(employeeDirectory, surveyData) {
         }
     }
 }
-
 
 
 module.exports = {
