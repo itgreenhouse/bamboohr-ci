@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { fetchEmployeeDirectory, uploadNewSurveys } = require('./employees'); // Import functions from employees.js
-const { fetchApplications, fetchApplicationDetail, fetchJobSummaries, fetchStatuses, addApplicationComment } = require('./applicants');
+const { fetchApplications, fetchApplicationDetail, fetchJobSummaries, fetchStatuses, addApplicationComment, changeApplicantStatus, uploadApplicationSurveys } = require('./applicants');
 require('dotenv').config();
 
 
@@ -37,7 +37,7 @@ async function fetchSurveyData(url = 'https://api.cultureindex.com/Surveys?api-v
                 lastName: survey.lastName,
                 traitPattern: survey.traitPattern,
                 surveyReportLink: survey.surveyReportLink,
-                surveyDate: survey.surveyDate
+                surveyDate: survey.surveyDate,
             });
         });
 
@@ -71,28 +71,39 @@ app.get('/employeesTest', async (req, res) => {
 
 app.get('/applications', async (req, res) => {
     try {
-        // const applications = await fetchApplications();
-        // const applicationDetail = await fetchApplicationDetail();
-        // const statuses = await fetchStatuses();
-        const applicationComment = await addApplicationComment(19692, "https://surveys.cultureindex.com/r/kkJv72CR65/Paul_Cochrane_(15075303).pdf");
+        const surveyData = await fetchSurveyData();
+        const applications = await fetchApplications();
+        // const statuses = await fetchApplicationDetail(21497)
+
+        await uploadApplicationSurveys(applications, surveyData)
         res.status(200).json({
             message: 'Applications fetched successfully',
+            // surveyData: surveyData,
             // applications: applications,
-            // applicationDetail: applicationDetail,
             // statuses: statuses,
-            applicationComment
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching applications', error: error.message });
     }
 });
 
-app.get('/surveys', async (req, res) => {
+app.get('/test', async (req, res) => {
     try {
-        const surveyData = await fetchSurveyData();
+        // const changeStatus = await changeApplicantStatus();
+        // const surveyData = await fetchSurveyData();
+        // const applications = await fetchApplications();
+        // const applicationDetail = await fetchApplicationDetail();
+        // // const status = await fetchStatuses();
+        const employeeDirectory = await fetchEmployeeDirectory();
+        const applications = await fetchApplications();
         res.status(200).json({
             message: 'Applications fetched successfully',
-            surveyData: surveyData
+            // applicationDetail: applicationDetail,
+            // status: status
+            // surveyData: surveyData,
+            // changeStatus: changeStatus,
+            applications: applications,
+            employeeDirectory: employeeDirectory
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching applications', error: error.message });

@@ -17,10 +17,13 @@ async function fetchApplications(url = `https://api.bamboohr.com/api/gateway.php
         const data = response.data;
 
         // Process current batch of applications without filtering by status
-        data.applications.forEach(application => {
+        data.applications
+        .filter(application => application.status.id == "1")
+        .forEach(application => {
             applicationsMap.push({
                 id: application.id, // Application ID
-                email: application.applicant.email // Applicant's email
+                status: application.status.id,
+                email: application.applicant.email, // Applicant's email
             });
         });
 
@@ -54,7 +57,7 @@ async function fetchApplicationDetail() {
     try {
         const options = {
             method: 'GET',
-            url: `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/19692`,
+            url: `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/21497`,
             headers: {
                 accept: 'application/json',
                 authorization: `Basic ${Buffer.from(`${process.env.BAMBOOHR_API_KEY}:x`).toString('base64')}`
@@ -96,9 +99,9 @@ async function fetchStatuses() {
     }
 }
 
-async function addApplicationComment(applicationId, commentText) {
+async function addApplicationComment(applicantionId, commentText) {
     try {
-        const url = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/${applicationId}/comments`;
+        const url = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/${applicantionId}/comments`;
 
         const options = {
             method: 'POST',
@@ -121,9 +124,65 @@ async function addApplicationComment(applicationId, commentText) {
     }
 }
 
+async function changeApplicantStatus(applicationId) {
+    try {
+        const url = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications/${applicationId}/status`;
+
+        const options = {
+            method: 'POST',
+            url: url,
+            headers: {
+                'content-type': 'application/json',
+                'authorization': `Basic ${Buffer.from(`${process.env.BAMBOOHR_API_KEY}:x`).toString('base64')}`
+            },
+            data: {
+                status: 29
+            }
+        };
+
+        const response = await axios.request(options);
+        console.log(`Status changed for application ${applicationId}`, response.data);
+    } catch (error) {
+        console.error(`Error changing status for application ${applicationId}:`, error.response ? error.response.data : error.message);
+        throw error;
+    }
+}
+
+async function uploadApplicationSurveys(applications, surveyData) {
+    
+    for (const applicant of applications) {
+        const email = applicant.email ? applicant.email.toLowerCase() : null;
+        const applicationId = applicant.id
+
+        if (!email) {
+            console.log(`Skipping applicant ${applicationId} due to null email.`);
+            continue;
+        }
+
+        const surveys = surveyData[email] ? surveyData[email].surveys : [];
+        if (surveys.length === 0) continue;
+
+        for (const survey of surveys) {
+            const reportLink = `${survey.surveyReportLink}`;
+            const trait = `${survey.traitPattern}`
+
+            try {
+                await addApplicationComment(applicationId, reportLink);
+                await addApplicationComment(applicationId, trait);
+                await changeApplicantStatus(applicationId)
+            } catch (error) {
+                console.error(`Error uploading survey for applicant ${applicationId}:`, error);
+            }
+        }
+    }
+}
+
+
 module.exports = {
     fetchApplications,
     fetchApplicationDetail,
     fetchStatuses,
-    addApplicationComment
+    addApplicationComment,
+    changeApplicantStatus,
+    uploadApplicationSurveys
 };
