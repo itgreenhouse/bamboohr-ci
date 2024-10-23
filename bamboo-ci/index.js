@@ -90,20 +90,20 @@ app.get('/applications', async (req, res) => {
 app.get('/test', async (req, res) => {
     try {
         // const changeStatus = await changeApplicantStatus();
-        // const surveyData = await fetchSurveyData();
+        const surveyData = await fetchSurveyData();
         // const applications = await fetchApplications();
         // const applicationDetail = await fetchApplicationDetail();
         // // const status = await fetchStatuses();
-        const employeeDirectory = await fetchEmployeeDirectory();
-        const applications = await fetchApplications();
+        // const employeeDirectory = await fetchEmployeeDirectory();
+        // const applications = await fetchApplications();
         res.status(200).json({
             message: 'Applications fetched successfully',
             // applicationDetail: applicationDetail,
             // status: status
-            // surveyData: surveyData,
+            surveyData: surveyData,
             // changeStatus: changeStatus,
-            applications: applications,
-            employeeDirectory: employeeDirectory
+            // applications: applications,
+            // employeeDirectory: employeeDirectory
         });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching applications', error: error.message });

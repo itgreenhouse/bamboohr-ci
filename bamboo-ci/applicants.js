@@ -167,8 +167,8 @@ async function uploadApplicationSurveys(applications, surveyData) {
             const trait = `${survey.traitPattern}`
 
             try {
-                await addApplicationComment(applicationId, reportLink);
-                await addApplicationComment(applicationId, trait);
+                const traitSurvey = `Trait: ${trait}\nSurvey Link: ${reportLink}`
+                await addApplicationComment(applicationId, traitSurvey);
                 await changeApplicantStatus(applicationId)
             } catch (error) {
                 console.error(`Error uploading survey for applicant ${applicationId}:`, error);
