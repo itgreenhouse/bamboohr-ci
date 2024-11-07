@@ -52,6 +52,70 @@ async function fetchApplications(url = `https://api.bamboohr.com/api/gateway.php
     }
 }
 
+async function fetchApplications2(url = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/applications?applicationStatusId=1&jobId=47`, allApplications = []) {
+    try {
+        const options = {
+            method: 'GET',
+            url: url,
+            headers: {
+                accept: 'application/json',
+                authorization: `Basic ${Buffer.from(`${process.env.BAMBOOHR_API_KEY}:x`).toString('base64')}`
+            }
+        };
+
+        const response = await axios.request(options);
+        const data = response.data;
+
+        // Append all applications from the current batch to the allApplications array
+        allApplications.push(...data.applications);
+
+        // Log the nextPageUrl for debugging
+        console.log('Next Page URL:', data.nextPageUrl);
+
+        // If there's a nextPageUrl, determine if it's relative or absolute
+        if (data.nextPageUrl) {
+            let nextUrl = data.nextPageUrl;
+
+            // Prepend the base URL if nextPageUrl is relative
+            if (nextUrl.startsWith('/')) {
+                nextUrl = `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}${nextUrl}`;
+            }
+
+            console.log(`Fetching more applications from: ${nextUrl}`);
+            return await fetchApplications2(nextUrl, allApplications);
+        }
+
+        // Return all applications once there are no more pages
+        return allApplications;
+
+    } catch (error) {
+        console.error('Error fetching applications:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+}
+
+async function fetchJobSummaries() {
+    try {
+        const options = {
+            method: 'GET',
+            url: `https://api.bamboohr.com/api/gateway.php/${process.env.BAMBOOHR_DOMAIN}/v1/applicant_tracking/jobs?statusGroups=On%20Hold`,
+            headers: {
+                accept: 'application/json',
+                authorization: `Basic ${Buffer.from(`${process.env.BAMBOOHR_API_KEY}:x`).toString('base64')}`
+            }
+        };
+
+        const response = await axios.request(options);
+        const data = response.data;
+
+        // Log the fetched applications for inspection
+        console.log('Applications:', data);
+        return data;
+    } catch (error) {
+        console.error('Error fetching applications:', error.response ? error.response.data : error.message);
+        throw error;
+    }
+}
 
 async function fetchApplicationDetail() {
     try {
@@ -184,5 +248,7 @@ module.exports = {
     fetchStatuses,
     addApplicationComment,
     changeApplicantStatus,
-    uploadApplicationSurveys
+    uploadApplicationSurveys,
+    fetchApplications2,
+    fetchJobSummaries
 };
