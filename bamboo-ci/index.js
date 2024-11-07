@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { fetchEmployeeDirectory, uploadNewSurveys } = require('./employees'); // Import functions from employees.js
-const { fetchApplications, fetchApplicationDetail, fetchJobSummaries, fetchStatuses, addApplicationComment, changeApplicantStatus, uploadApplicationSurveys } = require('./applicants');
+const { fetchApplications, fetchApplicationDetail, fetchJobSummaries, fetchStatuses, addApplicationComment, changeApplicantStatus, uploadApplicationSurveys, fetchApplications2 } = require('./applicants');
 require('dotenv').config();
 
 
@@ -90,19 +90,23 @@ app.get('/applications', async (req, res) => {
 app.get('/test', async (req, res) => {
     try {
         // const changeStatus = await changeApplicantStatus();
-        const surveyData = await fetchSurveyData();
+        // const surveyData = await fetchSurveyData();
         // const applications = await fetchApplications();
+        const applications2 = await fetchApplications2();
         // const applicationDetail = await fetchApplicationDetail();
         // // const status = await fetchStatuses();
         // const employeeDirectory = await fetchEmployeeDirectory();
         // const applications = await fetchApplications();
+        const jobs = await fetchJobSummaries();
         res.status(200).json({
             message: 'Applications fetched successfully',
             // applicationDetail: applicationDetail,
             // status: status
-            surveyData: surveyData,
+            // surveyData: surveyData,
             // changeStatus: changeStatus,
             // applications: applications,
+            applications2: applications2,
+            // jobs: jobs,
             // employeeDirectory: employeeDirectory
         });
     } catch (error) {
